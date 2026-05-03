@@ -1,0 +1,17 @@
+# Day01 - Basics
+
+## Ansible Task - INstall Nginx on Rushi Server
+
+Rewrite this YAML manually:
+
+```yaml
+- name: Install Nginx on Rushi server
+  hosts: all
+  become: yes
+
+  tasks:
+   - name: Install nginx
+     yum:
+       name: nginx
+       state: present
+       
