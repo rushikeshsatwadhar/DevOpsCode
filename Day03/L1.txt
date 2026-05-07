@@ -1,0 +1,129 @@
+# Day03 - Users, SGs, Env Vars
+
+## Ansible - Create User
+
+---
+- name: Create Rushi user
+  hosts: all
+  become: yes
+
+  tasks:
+    - name: Create user rushi-admin
+      user:
+        name: rushi-admin
+        shell: /bin/bash
+
+## Terraform - Security Group (r6i.4xlarge EC2)
+
+provider "aws" {
+    region = "us-east-1"
+}
+
+resource "aws_security_group" "RushiSG" {
+    name        = "RushiSG"
+    description = "Rushi SG for SSH"
+
+    ingrress {
+        from_port   = 22
+        to_port     = 22
+        protocol    = "tcp"
+        cidr-blocks = ["0.0.0.0/0"]
+    }
+}
+
+resource "aws_instance" "RushiEC2" {
+    ami                    = "ami-0abcd1234abcd1234"
+    instance_type          = "r6i.4xlarge"
+    vpc_security_group_ids = [aws_security_group.RushiSG.id]
+
+    tags = {
+        Name = "Rushi-EC2"
+    }
+}
+
+## Kubernetes - Add Environment Variables
+
+apiVersion: v1
+kind: Pod
+metadata:
+  name: rushi-env-pod
+spec:
+  containers:
+    - name: app
+      image: nginx
+      env:
+        - name: APP_ENV
+          value: "production"
+
+## Shell Script - Check File Exists
+
+#!/bin/bash
+FILE="/tmp/rushi.txt"
+
+if [ -f "$File" ]; then
+    echo "File exists"
+else
+    echo "File does not exist"
+fi
+
+# NodeJS Build
+## Jenkins Pipeline - NodeJS Build
+You will learn how to **install dependencies, run tests, and build a NodeJS project**.
+
+pipeline {
+    agent any
+    tools {
+        nodejs 'NodeJS-16'
+    }
+    stages {
+        stage('Checkout') {
+            steps {
+                git url: 'https://github.com/rushikeshsatwadhar/Login-Signup-Form'
+            }
+        }
+        stage('Install Dependencies') {
+            steps {
+                sh 'npm install'
+            }
+        }
+        stage('Run Test') {
+            steps {
+                sh 'npm rest'
+            }
+        }
+        stage('Build') {
+            steps {
+                sh 'npm run build'
+            }
+        }
+    }
+}
+
+##GitLab CI - NodeJS Build
+
+stages:
+  - install
+  - test
+  - build
+
+node-install:
+  stage: install
+  image: node:16
+  script:
+    - git clone https://github.com/rushikeshsatwadhar/Login-Signup-Form
+    - cd login-signup-form
+    - npm install
+
+node-test:
+  stage: test
+  image: node:16
+  script:
+    - cd login-signup-form
+    - npm test
+
+node-build:
+  stage: build
+  image: node:16
+  script:
+    - cd login-signup-form
+    - npm run build
