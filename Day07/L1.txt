@@ -1,0 +1,53 @@
+# Day07 - SPEED TYPING
+
+Rewrite ALL FOUR from scratch:
+
+1. Ansible: Install nginx
+2. Terraform: EC2 (choose any rushi instance)
+3. Kubernetes: Deployment 2 replicas
+4. Shell: Print date + uptime
+
+Set a timer: **20 minutes**
+
+# Parameterized Builds
+
+## jenkins Pipeline - Parameterized
+You will learn how to **create parameterized builds in Jenkins**.
+
+pipeline {
+    agent any
+    parameters {
+        string(name: 'ENVIRONMENT' , defaultValue: 'Deployment Environment')
+    }
+    environment {
+        INSTITUTE_NAME = "Rushi"
+    }
+    stages {
+        stage('Checkout') {
+            steps {
+                git url: 'https://github.com/rushikeshsatwadhar/Login-Signup-Form'
+            }
+        }
+        stage('Deploy') {
+            steps {
+                sh 'echo "Deploying to $ENVIRONMENT by $INSTITUTE_NAME"'
+            }
+        }
+    }
+}
+
+## GitLab CI - Parameterized via Variables
+you will learn how to **use variables to parameterized GitLab jobs**.
+
+stages:
+  - deploy
+
+variables:
+  INSTITUTE_NAME: "Rushi"
+  ENVIRONMENT: "dev"
+
+deploy:
+  stage: deploy
+  image: alpine: latest
+  script:
+    - echo "Deploying to $ENVIRONMENT by $INSTITUTE_NAME"
