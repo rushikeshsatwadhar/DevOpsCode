@@ -1,0 +1,136 @@
+# Day08 - Variables, VPC, Probes, Loops
+## Ansible - Install Packages using Variables
+
+---
+- name: Install packages for rushi using variables
+  hosts: all
+  become: yes
+
+  vars:
+    rushi_packages:
+      - tree
+      - unzip
+      - vim
+
+  tasks:
+    - name: Install required packages
+      yum:
+        name: "{{ rushi_packages }}"
+        states: present
+
+## Terraform - Create VPC + Subnet
+
+provider "aws" {
+    region = "us-east-1"
+}
+
+resource "aws_vpc" "RushiVPC" {
+    cidr_block = "10.10.0.0./16"
+
+    tags = {
+        Name = "Rushi-VPC"
+    }
+}
+
+resource "aws_subnet" "RushiSubnet" {
+    vpc_id.                 = aws_vpc.RushiVPC.id
+    cidr_block              = "10.10.1.0/24"
+    map_public_ip_on_launch = true
+
+    tags = {
+        Name = "Rushi-Subnet"
+    }
+}
+
+## Kubernetes - Add Liveness & Readiness Probes
+
+apiVersion: v1
+kind: Pod
+metadata:
+  name: rushi-probe-pod
+spec:
+  containers:
+    - name: web
+      image: nginx
+      livenessProbe:
+        httpGet:
+          path: /
+          port: 80
+        initialDelaySeconds: 5
+      readinessProbe:
+        httpGet:
+          path: / 
+          port: 80
+        initialDelaySeconds: 3
+
+## Shell Script - Loop Through List
+
+#!/bin/bash
+for item in Rushi DevOps Training; do 
+  echo "Item: $item"
+done
+
+# Conditional Stages
+
+## Jenkins Pipeline - Conditional Execution
+You will learn how to **run stages based on branch or parameter conditions**.
+
+pipeline {
+    agent any
+    parameters {
+        string(name: 'ENVIRONMENT', defaultValue: 'dev', description: 'Deployment Environment')
+    }
+    environment {
+        INSTITUTE_NAME = "Rushi"
+    }
+    stages {
+        stage('Checkout') {
+            steps {
+                git branch: 'main', url: 'https://github.com/rushikeshsatwadhar/Login-Signup-Form'
+            }
+        }
+        stage('Build') {
+            when {
+                branch 'main'
+            }
+            steps {
+                sh 'mvn clean compile'
+            }
+        }
+        stage('Deploy') {
+            when {
+                expression { params.ENVIRONMENT == 'dev'}
+            }
+            steps {
+                sh 'echo "Deploying to $ENVIRONMENT by $INSTITUTE_NAME"'
+            }
+        }
+    }
+}
+
+## GitLab CI - Conditional Jobs
+You will learn how to **run jobs based on variables or branches**
+
+stages:
+  - build
+  - deploy
+
+build:
+  stage: build
+  image: maven:3.8.1.jdk-17
+  script:
+    - git clone https://github.com/rushikeshsatwadhar/Login-Signup-Form
+    - cd Login-Signup-Form
+    - mvn clean compile
+  only:
+    - main
+
+deploy:
+  stage: Deploy
+  image: alpine:latest
+  script:
+    - echo "Deploying to $CI_ENVIRONMENT_NAME by Rushi"
+  only:
+    variables:
+      - $CI_ENVIRONMENT_NAME == "dev"
+      
