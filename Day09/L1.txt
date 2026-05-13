@@ -1,0 +1,86 @@
+# Day09 - Templates, Internet Gateway, ConfigMap, CPU Load
+## Ansible - Use Jinja2 Template
+
+---
+- name: Deploy template for Rushi
+  hosts: all
+  become: yes
+
+  tasks:
+    - name: Copy template file
+      template:
+        src: rushi.conf.j2
+        dest: /etc/rushi.conf
+
+## Terraform - Internet Gateway
+
+resource "aws_internet_gateway" "RushiIGW" {
+    vpc_id = aws_vpc.RushiVPC.id
+
+    tags = {
+        Name = "Rushi-IGW"
+    }
+}
+
+## Kubernetes - Create ConfigMap
+
+apiVersion: v1
+kind: ConfigMap
+metadata:
+   name: rushi-config
+data:
+  APP_MODE: "production"
+  WELCOME_MSG: "Hello Rushi"
+
+## Shell Script - Check CPU Load
+
+#!/bin/bash
+LOAD=$(uptime | awk '{print $10}')
+echo "Current CPU Load: $LOAD"
+
+# Artifact and Archiving
+## Jenkins Pipeline - Archive Artifacts
+You will learn how to **save build artifacts for future use**.
+
+pipeline {
+    agent any
+    environment {
+        INSTITUTE_NAME = "Rushi"
+    }
+    stages {
+        stage('Checkout') {
+            steps {
+                git url: 'https://github.com/rushikeshsatwadhar/Login-Signup-Form'
+            }
+        }
+        stage('Build') {
+            steps {
+                sh 'mvn clean package'
+            }
+        }
+        stage('Archive') {
+            steps {
+                archiveArtifacts artifacts: 'target/*.jar', fingerprint: true
+            }
+        }
+    }
+}
+
+## GitLab CI - Artifacts
+You will learn how to **store artifacts in GitLab CI**.
+
+stages:
+  - build
+
+build:
+  stage: build
+  image: maven:3.8.1-jdk-17
+  script:
+    - git clone https://github.com/rushikeshsatwadhar/Login-Signup-Form
+    - cd login-Signup-Form
+    - mvn clean package
+  artifacts:
+    paths:
+      - target/*.jar
+    expire_in:1 week
+    
